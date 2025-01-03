@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>OC Task List</title>
+  <!-- MathJax for LaTeX rendering -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+  </script>
+
+  <style>
+    /* Basic "elegant" style */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      background: #fafafa;
+      color: #333;
+    }
+
+    .container {
+      max-width: 680px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      padding: 20px 30px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 0.3em;
+      font-size: 1.8em;
+      color: #4b4b4b;
+    }
+
+    p.description {
+      text-align: center;
+      font-size: 1em;
+      color: #666;
+      margin-bottom: 1.5em;
+    }
+
+    .formula {
+      background: #f7f7f7;
+      padding: 15px;
+      border-radius: 6px;
+      margin: 20px 0;
+      font-size: 1.1em;
+      text-align: center;
+      overflow-x: auto;
+    }
+
+    /* Task list styles */
+    .task-list {
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
+
+    .task-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .task-label {
+      margin-right: 10px;
+      font-weight: bold;
+      color: #555;
+      margin-bottom: 6px;
+    }
+
+    .task-field {
+      display: flex;
+      align-items: center;
+      margin-right: 20px;
+      margin-bottom: 6px;
+    }
+
+    .task-field label {
+      margin-right: 8px;
+      font-weight: bold;
+      color: #555;
+    }
+
+    .task-field input[type="number"] {
+      width: 80px;
+      padding: 6px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1em;
+    }
+
+    .remove-btn {
+      background: #e74c3c;
+      border: none;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9em;
+      margin-left: auto;
+      margin-bottom: 6px;
+    }
+
+    .remove-btn:hover {
+      background: #cf3e30;
+    }
+
+    .add-btn {
+      display: block;
+      margin: 15px 0;
+      background: #4b8fea;
+      border: none;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1em;
+    }
+
+    .add-btn:hover {
+      background: #2f78d4;
+    }
+
+    .impact-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1em;
+    }
+
+    .impact-container label {
+      margin-right: 10px;
+      font-weight: bold;
+      color: #555;
+    }
+
+    .impact-container input[type="number"] {
+      width: 120px;
+      padding: 6px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1em;
+      margin-right: 20px;
+    }
+
+    .calculate-btn {
+      background: #4b8fea;
+      border: none;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1em;
+      margin: 0 auto;
+      display: block;
+    }
+
+    .calculate-btn:hover {
+      background: #2f78d4;
+    }
+
+    .result {
+      margin-top: 1.5em;
+      text-align: center;
+      font-size: 1.2em;
+      color: #333;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 0.8em;
+      color: #999;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>OC Task List</h1>
+    <p class="description">
+      This application calculates the <strong>OC</strong> (Objective Completion) value based on 
+      multiple tasks, each with a Priority (<em>P</em>), a Completion (<em>C</em>), and an overall 
+      business <strong>Impact</strong> (<em>I</em>). 
+      <br/><br/>
+      <strong>Priority (P):</strong> a value from 0 to 1 indicating the importance of each task. 
+      <br/>
+      <strong>Completion (C):</strong> a value from 0 to 1 showing how much of that task is completed. 
+      <br/>
+      <strong>Impact (I):</strong> a positive number representing the total benefit or effect on the business 
+      if all tasks are fully completed. 
+      <br/><br/>
+      Use the form below to add or remove tasks, set each task's Priority and Completion, 
+      and enter the overall Impact in the business context. Then click “Calculate OC.”
+    </p>
+
+    <div class="formula">
+      <!-- LaTeX formula to be rendered by MathJax -->
+      \[
+      \text{OC} \;=\; I \;\times\; 
+      \frac{\displaystyle \sum_{i=1}^{n} \bigl(P_i \times C_i\bigr)}
+           {\displaystyle \sum_{i=1}^{n} P_i}.
+      \]
+    </div>
+
+    <div class="task-list" id="taskList">
+      <!-- Dynamic rows will appear here -->
+    </div>
+
+    <button class="add-btn" onclick="addTask()">Add Task</button>
+
+    <div class="impact-container">
+      <label for="impact">Impact (I):</label>
+      <input 
+        type="number" 
+        id="impact" 
+        placeholder="e.g. 10" 
+        step="0.01"
+      />
+    </div>
+
+    <button class="calculate-btn" onclick="calculateOC()">Calculate OC</button>
+    <div class="result" id="result"></div>
+  </div>
+
+  <footer>
+    &copy; 2025 Example Inc. - All rights reserved
+  </footer>
+
+  <script>
+    let taskCount = 0;
+
+    // Create an initial task row on load (optional)
+    window.onload = () => {
+      addTask();
+    };
+
+    function addTask() {
+      taskCount++;
+
+      const taskList = document.getElementById('taskList');
+
+      // Create a container (row) for one task
+      const row = document.createElement('div');
+      row.className = 'task-row';
+      row.id = `task-row-${taskCount}`;
+
+      // Task label (e.g., Task #1)
+      const taskLabel = document.createElement('div');
+      taskLabel.className = 'task-label';
+      taskLabel.innerText = `Task #${taskCount}`;
+      row.appendChild(taskLabel);
+
+      // Priority field
+      const priorityField = document.createElement('div');
+      priorityField.className = 'task-field';
+      const labelP = document.createElement('label');
+      labelP.innerText = 'P:';
+      const inputP = document.createElement('input');
+      inputP.type = 'number';
+      inputP.step = '0.01';
+      inputP.placeholder = 'e.g. 0.8';
+      inputP.value = '';
+      priorityField.appendChild(labelP);
+      priorityField.appendChild(inputP);
+      row.appendChild(priorityField);
+
+      // Completion field
+      const completionField = document.createElement('div');
+      completionField.className = 'task-field';
+      const labelC = document.createElement('label');
+      labelC.innerText = 'C:';
+      const inputC = document.createElement('input');
+      inputC.type = 'number';
+      inputC.step = '0.01';
+      inputC.placeholder = 'e.g. 0.5';
+      inputC.value = '';
+      completionField.appendChild(labelC);
+      completionField.appendChild(inputC);
+      row.appendChild(completionField);
+
+      // Remove button
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'remove-btn';
+      removeBtn.innerText = 'Remove';
+      removeBtn.onclick = () => removeTask(row.id);
+      row.appendChild(removeBtn);
+
+      // Append the row to the task list
+      taskList.appendChild(row);
+    }
+
+    function removeTask(rowId) {
+      const row = document.getElementById(rowId);
+      if (row) {
+        row.remove();
+      }
+    }
+
+    function calculateOC() {
+      const resultDiv = document.getElementById('result');
+      resultDiv.textContent = ''; // Clear previous result
+
+      const taskList = document.getElementById('taskList');
+      const rows = taskList.getElementsByClassName('task-row');
+      const impactInput = document.getElementById('impact').value;
+
+      // Parse impact
+      const I = parseFloat(impactInput);
+
+      if (isNaN(I) || I <= 0) {
+        resultDiv.textContent = 'Error: Please provide a valid positive Impact (I).';
+        return;
+      }
+
+      let sumP = 0;
+      let sumPC = 0;
+
+      // For each row, read P and C
+      for (let i = 0; i < rows.length; i++) {
+        const inputs = rows[i].getElementsByTagName('input');
+        if (inputs.length < 2) continue; // Just a safeguard
+
+        const pVal = parseFloat(inputs[0].value);
+        const cVal = parseFloat(inputs[1].value);
+
+        // If either is NaN, skip or show error
+        if (isNaN(pVal) || isNaN(cVal)) {
+          resultDiv.textContent = 'Error: Please ensure all P (Priority) and C (Completion) values are valid numbers.';
+          return;
+        }
+
+        sumP += pVal;
+        sumPC += (pVal * cVal);
+      }
+
+      // Avoid division by zero
+      if (sumP === 0) {
+        resultDiv.textContent = 'Error: The sum of all priorities (P) is zero. Cannot compute OC.';
+        return;
+      }
+
+      // Calculate OC
+      const OC = I * (sumPC / sumP);
+
+      // Display result (rounded to 2 decimals)
+      resultDiv.textContent = `OC = ${OC.toFixed(2)}`;
+    }
+  </script>
+</body>
+</html>
