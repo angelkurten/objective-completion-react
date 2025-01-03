@@ -1,0 +1,11 @@
+{
+    "name": "objective-completion-react",
+    "version": "0.1.0",
+    "homepage": "https://angelkurten.github.io/objective-completion-react",
+    "private": false,
+    "scripts": {
+        "predeploy": "npm run build",
+        "deploy": "gh-pages -d build"
+    }
+}
+  
